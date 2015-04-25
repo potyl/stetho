@@ -40,7 +40,6 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import dalvik.system.DexClassLoader;
-import groovy.lang.GrooidClassLoader;
 import groovy.lang.Script;
 
 /**

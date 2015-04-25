@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-package groovy.lang;
+package com.facebook.stetho.inspector.protocol.module.repl;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.CompilationUnit;
@@ -18,6 +18,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import groovyjarjarasm.asm.ClassWriter;
+import groovy.lang.*;
 
 /**
  * An extension of {@link groovy.lang.GroovyClassLoader} which handles the fact
