@@ -20,13 +20,15 @@ import com.facebook.stetho.inspector.jsonrpc.JsonRpcResult;
 import com.facebook.stetho.inspector.jsonrpc.protocol.JsonRpcError;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsMethod;
+import com.facebook.stetho.inspector.protocol.module.repl.AbstractRuntimeRepl;
+import com.facebook.stetho.inspector.protocol.module.repl.RuntimeRepl;
 import com.facebook.stetho.json.ObjectMapper;
 import com.facebook.stetho.json.annotation.JsonProperty;
 import com.facebook.stetho.json.annotation.JsonValue;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -38,15 +40,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-
 public class Runtime implements ChromeDevtoolsDomain {
   private final ObjectMapper mObjectMapper = new ObjectMapper();
+
+  private RuntimeRepl mRepl;
 
   private static final Map<JsonRpcPeer, Session> sSessions =
       Collections.synchronizedMap(new HashMap<JsonRpcPeer, Session>());
 
+
   public Runtime() {
+    mRepl = new AbstractRuntimeRepl() {
+      @Override
+      public EvaluateResponse eval(@Nonnull JSONObject params) {
+        return buildEvaluateResponse(ObjectType.STRING, "Not supported", false);
+      }
+    };
+  }
+
+  public void setRepl(RuntimeRepl repl) {
+    mRepl = repl;
   }
 
   public static int mapObject(JsonRpcPeer peer, Object object) {
@@ -82,13 +95,7 @@ public class Runtime implements ChromeDevtoolsDomain {
 
   @ChromeDevtoolsMethod
   public JsonRpcResult evaluate(JsonRpcPeer peer, JSONObject params) {
-    RemoteObject remoteObject = new RemoteObject();
-    remoteObject.type = ObjectType.STRING;
-    remoteObject.value = "Not supported";
-    EvaluateResponse response = new EvaluateResponse();
-    response.result = remoteObject;
-    response.wasThrown = false;
-    return response;
+    return mRepl.evaluate(params);
   }
 
   @ChromeDevtoolsMethod
@@ -406,7 +413,7 @@ public class Runtime implements ChromeDevtoolsDomain {
     public List<PropertyDescriptor> result;
   }
 
-  private static class EvaluateResponse implements JsonRpcResult {
+  public static class EvaluateResponse implements JsonRpcResult {
     @JsonProperty(required = true)
     public RemoteObject result;
 
@@ -498,4 +505,5 @@ public class Runtime implements ChromeDevtoolsDomain {
       return mProtocolValue;
     }
   }
+
 }
