@@ -26,11 +26,18 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
 }
 
 dependencies {
     debugCompile project(':stetho')
     debugCompile project(':stetho-urlconnection')
+    debugCompile 'com.google.android.tools:dx:1.7'
+    debugCompile 'org.codehaus.groovy:groovy:2.4.3:grooid'
     debugCompile 'org.mozilla:rhino:1.7.6'
 
     // We must use Maven dependency resolution to demonstrate our usage

@@ -19,7 +19,7 @@ import com.facebook.stetho.common.LogUtil;
 import com.facebook.stetho.dumpapp.DumperPlugin;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.facebook.stetho.inspector.protocol.module.Runtime;
-import com.facebook.stetho.inspector.protocol.module.repl.RhinoRumtimeRepl;
+import com.facebook.stetho.inspector.protocol.module.repl.GroovyRumtimeRepl;
 import com.facebook.stetho.inspector.protocol.module.repl.RuntimeRepl;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class SampleDebugApplication extends SampleApplication {
     for (ChromeDevtoolsDomain module : Stetho.defaultInspectorModulesProvider(context).get()) {
       if (module instanceof Runtime) {
         Runtime runtime = (Runtime) module;
-        RuntimeRepl repl = new RhinoRumtimeRepl(this);
+        RuntimeRepl repl = new GroovyRumtimeRepl(this);
         runtime.setRepl(repl);
       }
       modules.add(module);
