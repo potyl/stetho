@@ -31,6 +31,7 @@ android {
 dependencies {
     debugCompile project(':stetho')
     debugCompile project(':stetho-urlconnection')
+    debugCompile 'org.mozilla:rhino:1.7.6'
 
     // We must use Maven dependency resolution to demonstrate our usage
     // of optional dependencies to include stetho-urlconnection but not
