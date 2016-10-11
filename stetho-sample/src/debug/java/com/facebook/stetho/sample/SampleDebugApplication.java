@@ -12,17 +12,27 @@ package com.facebook.stetho.sample;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.CalendarContract;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.facebook.stetho.DumperPluginsProvider;
 import com.facebook.stetho.InspectorModulesProvider;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.dumpapp.DumperPlugin;
+import com.facebook.stetho.inspector.console.RuntimeReplFactory;
 import com.facebook.stetho.inspector.database.ContentProviderDatabaseDriver;
 import com.facebook.stetho.inspector.database.ContentProviderSchema;
 import com.facebook.stetho.inspector.database.ContentProviderSchema.Table;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
+import com.facebook.stetho.rhino.JsRuntimeReplFactoryBuilder;
+
+import org.mozilla.javascript.BaseFunction;
+import org.mozilla.javascript.NativeJavaObject;
+import org.mozilla.javascript.Scriptable;
 
 public class SampleDebugApplication extends SampleApplication {
   private static final String TAG = "SampleDebugApplication";
@@ -65,7 +75,48 @@ public class SampleDebugApplication extends SampleApplication {
     public Iterable<ChromeDevtoolsDomain> get() {
       return new Stetho.DefaultInspectorModulesBuilder(mContext)
           .provideDatabaseDriver(createContentProviderDatabaseDriver(mContext))
+          .runtimeRepl(createRuntimeRepl(mContext))
           .finish();
+    }
+
+    private static RuntimeReplFactory createRuntimeRepl(final Context context) {
+      final JsRuntimeReplFactoryBuilder jsRuntime = new JsRuntimeReplFactoryBuilder(context);
+      final Handler handler = new Handler(Looper.getMainLooper());
+
+      // Add `toast(String)` to the javascript runtime
+      jsRuntime.addFunction("toast", new BaseFunction() {
+        @Override
+        public Object call(org.mozilla.javascript.Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+          if (args == null || args.length == 0) {
+            return org.mozilla.javascript.Context.getUndefinedValue();
+          }
+
+          final Object arg = args[0];
+          final String message;
+
+          if (arg instanceof NativeJavaObject) {
+            NativeJavaObject jsObject = (NativeJavaObject) arg;
+            Object unwrap = jsObject.unwrap();
+            message = unwrap == null ? null : unwrap.toString();
+          }
+          else {
+            message = arg == null ? null : arg.toString();
+          }
+
+          handler.post(new Runnable() {
+            public void run() {
+              Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            }
+          });
+
+          return org.mozilla.javascript.Context.getUndefinedValue();
+        }
+      });
+
+      jsRuntime.importPackage("fr.lelivrescolaire.db");
+      jsRuntime.importClass(fr.lelivrescolaire.db.DbManager.class);
+
+      return jsRuntime.build();
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
